@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class LoginActivity extends AppCompatActivity  {
@@ -31,6 +32,7 @@ public class LoginActivity extends AppCompatActivity  {
     Button send;
     Button toRegister;
     LoginViewModel viewModel;
+    private String password;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,24 +77,34 @@ public class LoginActivity extends AppCompatActivity  {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
-                    Log.d("LoginActivity", "Task success");
-                    if (task.getResult().getData().values().toArray()[6].toString().equals(Password.getText().toString())) {
+                    Log.d("MainActivity", Arrays.toString(task.getResult().getData().values().toArray()));
+                    for (Object info : task.getResult().getData().values().toArray()){
+                        if (info.toString().contains("PASSWORD-")){
+                            password = info.toString();
+                            Log.d("MainActivity",  password);
+                        }
+
+                    }
+                    password = password.replace("PASSWORD-", "");
+                    Log.d("MainActivity", password);
+                    if (password.equals(Password.getText().toString())) {
                         MyApp app = ((MyApp) getApplicationContext());
                         User user = new User(task.getResult().getData().values().stream().map(Object::toString).collect(Collectors.joining(",")));
                         app.setUser(user);
-                        Log.d("LoginActivity",  "User - " + app.getUser().getInfo());
+                        Log.d("MainActivity",  "User - " + app.getUser().getInfo());
                         //viewModel.getUser().setUser(Arrays.toString(task.getResult().getData().values().toArray()));
 
                         Intent main = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(main);
-                        Log.d("LoginActivity", "Successfully start Activity");
+                        Log.d("MainActivity", "Successfully start Activity");
                         finish();
                     } else {
-                        Log.d("LoginActivity", "login fail " + task.getResult().getData().values().toArray()[6].toString() + "///" + Password.getText().toString());
+                        Log.d("MainActivity", "login fail " + password + "///" + Password.getText().toString());
                     }
                 } else {
-                    Log.d("LoginActivity", "Task database error");
+                    Log.d("MainActivity", "Task database error");
                 }
+                Log.d("MainActivity", "////////////////////////////////////////////////");
             }
         });
     }

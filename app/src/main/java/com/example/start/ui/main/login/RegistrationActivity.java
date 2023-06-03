@@ -82,11 +82,11 @@ public class RegistrationActivity extends AppCompatActivity  {
     }
     private void addNewUser(){
         Map<String, String> reg_entry = new HashMap<>();
-        reg_entry.put("Email", emailAdress.getText().toString());
-        reg_entry.put("Password", firstPassword.getText().toString());
-        reg_entry.put("Name", name.getText().toString());
-        reg_entry.put("TimeRegistration", String.valueOf(System.currentTimeMillis()));
-        reg_entry.put("Id", UUID.randomUUID().toString());
+        reg_entry.put("Email", "EMAIL-" + emailAdress.getText().toString());
+        reg_entry.put("Password", "PASSWORD-" + firstPassword.getText().toString());
+        reg_entry.put("Name", "NAME-" + name.getText().toString());
+        reg_entry.put("TimeRegistration", "TIMEREG-" + String.valueOf(System.currentTimeMillis()));
+        reg_entry.put("Id", "ID-" + UUID.randomUUID().toString());
         reg_entry.put("MobNumber", "Soon");
         reg_entry.put("Is2FaOn", "false");
         FirebaseFirestore.getInstance().collection("client").document(emailAdress.getText().toString()).set(reg_entry);

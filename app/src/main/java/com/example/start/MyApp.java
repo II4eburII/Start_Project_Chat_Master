@@ -9,14 +9,11 @@ import com.example.start.data.Friend;
 import com.example.start.data.User;
 import com.example.start.data.UserInChat;
 import com.example.start.db.RealmDatabase;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import io.realm.Realm;
@@ -25,6 +22,10 @@ import io.realm.RealmResults;
 
 public class MyApp extends Application {
     private RealmDatabase mDatabase;
+    private boolean isDataBaseListening;
+    private String name;
+    private String email;
+    private String id;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -39,8 +40,17 @@ public class MyApp extends Application {
                         allowWritesOnUiThread(true).
                         deleteRealmIfMigrationNeeded().
                         build());
-    }
 
+    }
+    public boolean updateDataBaseListening(){
+        boolean currentValue = isDataBaseListening;
+        Log.d("MainActivity", "FireBaseListening = " + String.valueOf(isDataBaseListening));
+        isDataBaseListening = true;
+        return currentValue;
+    }
+    public void resetDataBaseListening(){
+        isDataBaseListening = false;
+    }
     public User getUser() {
         return mDatabase.getUserDB();
     }
@@ -70,7 +80,19 @@ public class MyApp extends Application {
                             public void onSuccess(DocumentSnapshot documentSnapshot) {
                                 user = new User(documentSnapshot.getData().values().stream().map(Object::toString).collect(Collectors.joining(",")));
                                 String[] userInfo = user.getInfo().split(",");
-                                Friend friend = new Friend(userInfo[5], userInfo[1], userInfo[3]);
+                                Log.d("MainActivity", user.getInfo());
+                                for (Object info : documentSnapshot.getData().values().stream().map(Object::toString).collect(Collectors.joining(",")).split(",")){
+                                    if (info.toString().contains("NAME-")){
+                                        name = info.toString().replace("NAME-", "");
+                                    } else if (info.toString().contains("EMAIL-")){
+                                        email = info.toString().replace("EMAIL-", "");
+                                    } else if (info.toString().contains("ID-")){
+                                        id = info.toString();
+                                    }
+
+                                }
+                                Log.d("MainActivity", name + " "  + email + " " + id);
+                                Friend friend = new Friend(name, email, id);
                                 mDatabase.addFriendDB(friend);
                             }
 
@@ -104,4 +126,5 @@ public class MyApp extends Application {
     public String getMessageGUID(){
         return mDatabase.getMessageGUID();
     }
+    public void clearAll(){mDatabase.clearAll();}
 }

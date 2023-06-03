@@ -27,7 +27,8 @@
             app:bl_arrowPosition="7dp"
             app:bl_arrowWidth="6dp"
             app:bl_bubbleColor="@color/primary"
-            app:bl_cornersRadius="16dp">
+            app:bl_cornersRadius="16dp"
+            android:clickable="true">
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

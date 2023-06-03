@@ -10,7 +10,7 @@ public class User extends RealmObject {
     private String info;
     private boolean isLoginned;
     public User(String info){
-        user_id = "";
+        user_id = info.split(",")[3];
         this.info = info;
         isLoginned = true;
     }
@@ -20,6 +20,7 @@ public class User extends RealmObject {
         return info;
     }
     public void setInfo(String info){
+        user_id = info.split(",")[3];
         this.info = info;
         isLoginned = true;
     }

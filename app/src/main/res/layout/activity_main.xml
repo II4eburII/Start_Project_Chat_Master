@@ -75,7 +75,8 @@
                     android:layout_height="40dp"
                     android:background="@color/alpha"
                     android:scaleType="fitXY"
-                    app:srcCompat="@android:drawable/ic_menu_rotate" />
+                    android:padding="3dp"
+                    app:srcCompat="@drawable/btn_emoji" />
                 <!--Msg Lt// Message-->
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/message"
@@ -92,7 +93,8 @@
                     android:layout_height="40dp"
                     android:background="@color/alpha"
                     android:scaleType="fitXY"
-                    app:srcCompat="@android:drawable/ic_menu_add" />
+                    android:padding="3dp"
+                    app:srcCompat="@drawable/baseline_add_circle_outline_24" />
             </androidx.appcompat.widget.LinearLayoutCompat>
             <!--Msg Lt// Send-->
             <ImageButton
@@ -101,7 +103,8 @@
                 android:layout_height="40dp"
                 android:background="@drawable/padding"
                 android:scaleType="fitXY"
-                app:srcCompat="@android:drawable/ic_menu_send" />
+                android:padding="5dp"
+                app:srcCompat="@drawable/baseline_send_24" />
         </androidx.appcompat.widget.LinearLayoutCompat>
         <!--Chat layout-->
         <RelativeLayout

@@ -30,8 +30,12 @@ public class RealmDatabase {
             }
         });
     }
-    public RealmResults<Message> getMessages(String sortField){
-        return mRealm.where(Message.class).sort(sortField).findAll();
+    public RealmResults<Message> getMessages(String idSender, String idGetter){
+        return mRealm.where(Message.class)
+                .equalTo("idSender", idSender).equalTo("idGetter", idGetter).sort("time")
+                .or()
+                .equalTo("idSender", idGetter).equalTo("idGetter", idSender).sort("time")
+                .findAll();
     }
 
     public void deleteById(long id){
@@ -159,16 +163,26 @@ public class RealmDatabase {
             });
         }
     }
-    public void addFriendDB(Friend friend){
+    public void clearAll(){
         mRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                mRealm.copyToRealmOrUpdate(friend);
+                // remove single match
+                mRealm.deleteAll();
             }
+        });
+
+
+    }
+    public void addFriendDB(Friend friend){
+        mRealm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {mRealm.copyToRealmOrUpdate(friend);}
         });
 
     }
     public Friend getFriendDB(String Email){
+        Log.d("MainActivity", mRealm.where(Friend.class).equalTo("Email", Email).findFirst().getFriendName());
         return mRealm.where(Friend.class).equalTo("Email", Email).findFirst();
     }
     public RealmResults<Friend> getFriends(){

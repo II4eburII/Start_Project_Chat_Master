@@ -1,15 +1,28 @@
 package com.example.start.ui.main.main;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.EditText;
 
 import androidx.databinding.DataBindingUtil;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 
@@ -18,6 +31,7 @@ import com.example.start.data.Message;
 import com.example.start.R;
 import com.example.start.data.User;
 import com.example.start.databinding.ActivityMainBinding;
+import com.example.start.databinding.LoginLayoutBinding;
 import com.example.start.ui.main.login.RegistrationActivity;
 import com.example.start.ui.main.menu.MainMenuActivity;
 import com.example.start.ui.main.menu.MainMenuActivityViewModel;
@@ -33,9 +47,12 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
+import java.nio.file.LinkPermission;
 import java.util.HashMap;
 import java.util.List;
 import java.util.TimeZone;
+
+import io.realm.Realm;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -44,25 +61,40 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference mDatabase;
     private MyApp app;
     //snackbar - livedata / доделать friend
-
+    private MutableLiveData<String> currentName;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        viewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
         app = ((MyApp) getApplicationContext());
-        checkCurrentUser();
+        checkCurrentUser(); // computer - pass
+                            // aa - telephone
 
         if (!app.checkUser() || !app.checkChat()){
             return;
         }
+        Log.d("MainActivity", "CHAT - " + app.getChat().getChatEmail());
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        viewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
         binding.recyclerView.setLayoutManager(new GridLayoutManager(this, 1));
         binding.recyclerView.setAdapter(viewModel.getAdapter());
+        binding.recyclerView.scrollToPosition(binding.recyclerView.getAdapter().getItemCount() - 1);
 
         binding.name.setText(app.getChat().getChatName());
 
 
-        Log.d("MainActivity", "User Success and Chat Success");
+
+
+        final Observer<String> messageChange = new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable final String string) {
+                binding.recyclerView.scrollToPosition(binding.recyclerView.getAdapter().getItemCount() - 1);
+            }
+        };
+
+        // Observe the LiveData, passing in this activity as the LifecycleOwner and the observer.
+        viewModel.setMessageChange().observe(this, messageChange);
+
+
 
         binding.btnSend.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("NotifyDataSetChanged")
@@ -72,16 +104,19 @@ public class MainActivity extends AppCompatActivity {
                             binding.message.getText().toString(),
                             System.currentTimeMillis() - TimeZone.getDefault().getOffset(System.currentTimeMillis()),
                             true,
-                            app.getUser().getInfo().split(",")[5],
-                            app.getChat().getChatEmail());
-                    FirebaseDatabase.getInstance().getReference().child("Users")
-                            .child(app.getUser().getInfo().split(",")[1]).child(app.getChat().getChatEmail()).setValue(message.getGuid());
-                    FirebaseDatabase.getInstance().getReference().child("Users")
-                            .child(app.getChat().getChatEmail()).child(app.getUser().getInfo().split(",")[1]).setValue(message.getGuid());
-                    FirebaseDatabase.getInstance().getReference().child("Messages").child(app.getChat().getChatEmail()).child(String.valueOf(message.getGuid())).setValue(message);
+                            app.getUser().getUserId(),
+                            app.getChat().getChatId());
+                    Log.d("MainActivity", app.getUser().getUserId() + "/" + app.getUser().getInfo().split(",")[1] + " / " + app.getChat().getChatId() + "/" + app.getChat().getChatEmail() + " = " + app.getUser().getUserId().equals(app.getChat().getChatId()));
+                    FirebaseDatabase.getInstance()
+                            .getReference()
+                            .child("Messages")
+                            .child(app.getChat().getChatId())
+                            .child("NewMessages")
+                            .child(String.valueOf(message.getGuid())).setValue(message);
                     //app.setLastMessage(binding.message.getText().toString());
-                    app.setMessageGUID(message.getGuid());
+                    //app.setMessageGUID(message.getGuid());
                     viewModel.addMessage(message);
+                    binding.recyclerView.scrollToPosition(binding.recyclerView.getAdapter().getItemCount() - 1);
                     binding.message.getText().clear();
                 }
             }
@@ -96,95 +131,47 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        /*FirebaseDatabase.getInstance().getReference().child("Messages")
-                .child(app.getUser().getInfo().split(",")[1])
-                .addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d("MainActivity", "////////////////1");
-                if (dataSnapshot.getValue() == null){return;}
-                Log.d("MainActivity", "////////////////2");
-                HashMap<String, Object> map = (HashMap<String, Object>) dataSnapshot.getValue();
-                Log.d("MainActivity", "Message - /3" + map);
-                map = (HashMap<String, Object>) map.get(app.getUser().getInfo().split(",")[1]);
-                try {
-                    Log.d("MainActivity", "Message - /4" + map.values().toArray()[0].toString().split(",").toString());
-                }catch (Throwable throwable){}
-
-                //Message message = new Message();
-                Log.d("MainActivity", String.valueOf(dataSnapshot.child(app.getMessageGUID()).getValue()));
-                FirebaseDatabase.getInstance().getReference().child("Messages").child(app.getUser().getInfo().split(",")[1]).child(app.getMessageGUID()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task != null){
-                        Object map1 = task.getResult().getValue();
-                        Log.d("MainActivity", String.valueOf(map1) + "///1");
-                        //Message message = new Message(map1.toString().replace("{", "").replace("}", "").split(","));
-                        Log.d("MainActivity", app.getMessageGUID() + " Message - ////2" + String.valueOf(map1).replace("{", "").replace("}", "").split(","));
-                        //Log.d("MainActivity", app.getMessageGUID() + " Message - ////");
-                        }
-                        }
-                });
-            }
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.e("MainActivity", "Failed to read app title value.", error.toException());
-            }
-        });*/
-        FirebaseDatabase.getInstance().getReference().child("Messages").child(app.getUser().getInfo().split(",")[1]).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.getValue() == null) {
-                    return;
-                }
-                HashMap<String, Object> map = (HashMap<String, Object>) dataSnapshot.getValue();
-                Log.d("MainActivity", "Message - /3" + map);
-                map = (HashMap<String, Object>) map.get(app.getUser().getInfo().split(",")[1]);
-                Log.d("MainActivity", "Message - /3" + map);
-                FirebaseDatabase
-                        .getInstance()
-                        .getReference()
-                        .child("Users")
-                        .child(app.getUser().getInfo().split(",")[1])
-                        .child(app.getChat().getChatEmail()).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                                if (!task.isSuccessful()) {
-                                    Log.e("firebase", "Error getting data" + task.getResult() + task.getException());
-                                }
-                                else {
-                                    Log.d("firebase", String.valueOf(task.getResult().getValue()));
-                                }
-                            }
-                        });
-                FirebaseDatabase.getInstance().getReference().child("Messages").child(app.getUser().getInfo().split(",")[1]).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task != null){
-                            Object map1 = task.getResult().getValue();
-                            Log.d("MainActivity",   app.getChat().getChatEmail() + String.valueOf(map1) + "///1");
-
-                                    //Message message = new Message(map1.toString().replace("{", "").replace("}", "").split(","));
-
-                            //Log.d("MainActivity", " Message - ////2" + message.getResult());
-                             //String.valueOf(map1).replace("{", "").replace("}", "").split(",")
-                            //Log.d("MainActivity", app.getMessageGUID() + " Message - ////");
-                        }
-                    }
-                });
-
-            }
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.e("MainActivity", "Failed to read app title value.", error.toException());
-            }
-        });
+        registerForContextMenu(binding.recyclerView);
     }
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
 
+        getMenuInflater().inflate(R.menu.operation_message, menu);
+    }
+    public void onDeleteMessage(MenuItem item){
+        viewModel.deleteMessage(viewModel.getContextClickOperation());
+        Log.d("MainActivity", "click delete");
+    }
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch(item.getItemId()){
+            case R.id.message:
+                AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+                return true;
+        }
+        return super.onContextItemSelected(item);
+    }
+    public void onChangeMessage(MenuItem item){
+        final EditText input = new EditText(getApplicationContext());
+        input.setText(viewModel.getContextClickOperation().getText());
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setIcon(R.drawable.message)
+                .setTitle("Изменение сообщения")
+                .setView(input)
+                .setPositiveButton("Изменить", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        viewModel.changeMessage(viewModel.getContextClickOperation(), input.getText().toString());
+                    }
+                }).setCancelable(true)
+                .create()
+                .show();
+    }
     public boolean checkCurrentUser() {
-        Log.d("MainActivity", String.valueOf(!app.checkUser()) + " / in check user / " + app.getUser());
+        //Log.d("MainActivity", String.valueOf(!app.checkUser()) + " / in check user / " + app.getUser());
         if (!app.checkUser()) {
 
             Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
@@ -197,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
         return !app.checkUser() && !app.checkChat();
     }
     public boolean checkCurrentChat() {
-        Log.d("MainActivity", String.valueOf(!app.checkChat()) + " / in check chat / " + app.getChat());
+        //Log.d("MainActivity", String.valueOf(!app.checkChat()) + " / in check chat / " + app.getChat());
         if (!app.checkChat()) {
             Intent intent = new Intent(MainActivity.this, MainMenuActivity.class);
             startActivity(intent);

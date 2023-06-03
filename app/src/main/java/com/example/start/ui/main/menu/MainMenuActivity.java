@@ -72,26 +72,26 @@ public class MainMenuActivity extends AppCompatActivity {
                         .setPositiveButton("Add Friend", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
+                                if (input.getText().toString().trim().equals("")){return;}
                                 FirebaseFirestore.getInstance().collection("client").document(input.getText().toString()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                     @Override
                                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                         if (task.isSuccessful()) {
                                             DocumentSnapshot document = task.getResult();
-                                            Log.d("MainActivity", "yes");
+                                            //Log.d("MainActivity", "yes");
                                             if (document.exists()) {
-                                                Log.d("MainActivity", "YES");
+                                                //Log.d("MainActivity", "YES");
                                                 app.addFriend(input.getText().toString());
                                             } else {
-                                                Log.d("MainActivity", "no");
+                                                //Log.d("MainActivity", "no");
                                                 Toast.makeText(getApplicationContext(), "Кажется такого не существует", Toast.LENGTH_SHORT);
                                             }
                                         } else {
-                                            Log.d("MainActivity", "NO");
+                                            //Log.d("MainActivity", "NO");
                                         }
                                     }
                                 });
-
-
+                                //Log.d("MainActivity", "next");
                             }
                         })
                         .setCancelable(true)
@@ -101,7 +101,9 @@ public class MainMenuActivity extends AppCompatActivity {
         binding.MainMenuBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                app.resetDataBaseListening();
                 app.signOut();
+                app.clearAll();
                 Intent intent = new Intent(MainMenuActivity.this, RegistrationActivity.class);
                 startActivity(intent);
                 finish();
@@ -113,7 +115,7 @@ public class MainMenuActivity extends AppCompatActivity {
         Toast.makeText(this, "Clicked on Button", Toast.LENGTH_LONG).show();
     }
     public void setChatInMainMenu(Friend friend){
-        Log.d("MyApp", friend.getFriendName() + "//" + friend.getFriendEmail() + "//" + friend.getFriendId());
+        Log.d("MainActivity", friend.getFriendName() + "//" + friend.getFriendEmail() + "//" + friend.getFriendId() + "///////////");
         app.setChat(new UserInChat(friend.getFriendName(), friend.getFriendEmail(), friend.getFriendId(), app.getUser().getInfo().split(",")[1]));
         Intent intent = new Intent(MainMenuActivity.this, MainActivity.class);
         startActivity(intent);

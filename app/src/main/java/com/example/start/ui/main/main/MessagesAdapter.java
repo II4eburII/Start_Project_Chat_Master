@@ -2,8 +2,11 @@ package com.example.start.ui.main.main;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
@@ -19,6 +22,7 @@ import io.realm.RealmRecyclerViewAdapter;
 public class MessagesAdapter extends RealmRecyclerViewAdapter<Message, MessagesAdapter.ViewHolder> {
 
     private final OrderedRealmCollection<Message> messages;
+    private AdapterListener messagesListner;
     private Message mContextClickOperation;
 
     MessagesAdapter(OrderedRealmCollection<Message> messages){
@@ -31,9 +35,14 @@ public class MessagesAdapter extends RealmRecyclerViewAdapter<Message, MessagesA
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         MessageItemBinding binding = DataBindingUtil.inflate(inflater, R.layout.message_item, parent, false);
-        Log.w("myApp", "здесь");
+        ViewHolder holder = new ViewHolder(MessageItemBinding.inflate(inflater));
+
+        holder.binding.getRoot().setOnCreateContextMenuListener((contextMenu, view, contextMenuInfo) -> {
+            mContextClickOperation = messages.get(holder.getAdapterPosition());
+        });
         return new ViewHolder(binding);
     }
+
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.bind(messages.get(position));
@@ -47,7 +56,7 @@ public class MessagesAdapter extends RealmRecyclerViewAdapter<Message, MessagesA
         return mContextClickOperation;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener{
         private final MessageItemBinding binding;
         public ViewHolder(@NonNull MessageItemBinding binding) {
 
@@ -57,6 +66,12 @@ public class MessagesAdapter extends RealmRecyclerViewAdapter<Message, MessagesA
         public void bind(Message message){
             binding.setMsg(message);
             binding.bubbleLayout.setArrowDirection(message.getSenderIsMe()?ArrowDirection.RIGHT:ArrowDirection.LEFT);
+        }
+
+        @Override
+        public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
+            menu.add(this.getAdapterPosition(), 121, 0, "DELETE");
+            menu.add(this.getAdapterPosition(), 121, 0, "CHANGE");
         }
     }
     public void addMessage(Message msg){

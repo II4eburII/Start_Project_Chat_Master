@@ -15,24 +15,24 @@ import io.realm.annotations.PrimaryKey;
 public class Message extends RealmObject {
     @PrimaryKey
     private String guid;
-    private String id_sender;
-    private String id_getter;
+    private String idSender;
+    private String idGetter;
     private String name;
     private String text;
     private long time;
-    private String datetime;
+    private String dateTime;
     private int timezone;
     private boolean senderIsMe;
-    public Message(String name, String text, long time, boolean senderIsMe, String id_sender, String id_getter){
+    public Message(String name, String text, long time, boolean senderIsMe, String idSender, String idGetter){
         this.guid = String.valueOf(java.util.UUID.randomUUID());
         this.name = name;
         this.text = text;
         this.time = time;
         this.senderIsMe = senderIsMe;
-        this.id_sender = id_sender;
-        this.id_getter = id_getter;
-        this.datetime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(time + TimeZone.getDefault().getOffset(System.currentTimeMillis()));
-        this.datetime = this.datetime.charAt(0) == "0".charAt(0)? this.datetime.substring(1) : this.datetime;
+        this.idSender = idSender;
+        this.idGetter = idGetter;
+        this.dateTime = new SimpleDateFormat("HH:mm", Locale.getDefault()).format(time + TimeZone.getDefault().getOffset(System.currentTimeMillis()));
+        this.dateTime = this.dateTime.charAt(0) == "0".charAt(0)? this.dateTime.substring(1) : this.dateTime;
         this.timezone = TimeZone.getDefault().getOffset(System.currentTimeMillis())/3600;
     }
     public Message(Message message) {
@@ -50,8 +50,11 @@ public class Message extends RealmObject {
     public String getText(){
         return text;
     }
+    public void setText(String text){
+        this.text = text;
+    }
     public long getTime(){return time;}
-    public String getDateTime(){return datetime;}
+    public String getDateTime(){return dateTime;}
     public int getTimezone(){return timezone;}
     public boolean getSenderIsMe(){
         return senderIsMe;
@@ -60,23 +63,24 @@ public class Message extends RealmObject {
         this.senderIsMe = senderIsMe;
     }
     public String getIdSender() {
-        return id_sender;
+        return idSender;
     }
     public String getIdGetter() {
-        return id_getter;
+        return idGetter;
     }
     public String getGuid(){return guid;}
+    public void generateGuid(){guid = String.valueOf(java.util.UUID.randomUUID());}
 
     @Override
     public String toString() {
         return "Message{" +
                 "guid='" + guid + '\'' +
-                ", id_sender='" + id_sender + '\'' +
-                ", id_getter='" + id_getter + '\'' +
+                ", id_sender='" + idSender + '\'' +
+                ", id_getter='" + idGetter + '\'' +
                 ", name='" + name + '\'' +
                 ", text='" + text + '\'' +
                 ", time=" + time +
-                ", datetime='" + datetime + '\'' +
+                ", datetime='" + dateTime + '\'' +
                 ", timezone=" + timezone +
                 ", senderIsMe=" + senderIsMe +
                 '}';
