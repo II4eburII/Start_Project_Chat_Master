@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 
 import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
@@ -80,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
         binding.recyclerView.scrollToPosition(binding.recyclerView.getAdapter().getItemCount() - 1);
 
         binding.name.setText(app.getChat().getChatName());
-
 
 
 

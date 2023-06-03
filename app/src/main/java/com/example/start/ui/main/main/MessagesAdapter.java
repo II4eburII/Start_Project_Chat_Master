@@ -1,6 +1,8 @@
 package com.example.start.ui.main.main;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.drawable.ColorDrawable;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -71,7 +73,7 @@ public class MessagesAdapter extends RealmRecyclerViewAdapter<Message, MessagesA
         @Override
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
             menu.add(this.getAdapterPosition(), 121, 0, "DELETE");
-            menu.add(this.getAdapterPosition(), 121, 0, "CHANGE");
+            menu.add(this.getAdapterPosition(), 121, 1, "CHANGE");
         }
     }
     public void addMessage(Message msg){

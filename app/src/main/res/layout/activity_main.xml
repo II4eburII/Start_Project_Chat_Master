@@ -78,7 +78,7 @@
                     android:padding="3dp"
                     app:srcCompat="@drawable/btn_emoji" />
                 <!--Msg Lt// Message-->
-                <com.google.android.material.textfield.TextInputEditText
+                <EditText
                     android:id="@+id/message"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"

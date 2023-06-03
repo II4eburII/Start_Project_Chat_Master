@@ -26,7 +26,7 @@ public class RealmDatabase {
         mRealm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(@NonNull Realm realm) {
-                realm.copyToRealm(message);
+                realm.copyToRealmOrUpdate(message);
             }
         });
     }
